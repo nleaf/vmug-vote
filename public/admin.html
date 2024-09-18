@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 50%; /* Aspect ratio */
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+    <div class="chart-container">
+        <canvas id="resultsChart"></canvas>
+    </div>
+
+    <script>
+        async function fetchResults() {
+            try {
+                const response = await fetch('/api/results');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching results:', error);
+            }
+        }
+
+        async function updateAdminResults(chart) {
+            const results = await fetchResults();
+            chart.data.datasets[0].data = [results.hypervisor, results.vmware, results.hyperscaler];
+            chart.update();
+        }
+
+        // Set up the chart
+        const ctx = document.getElementById('resultsChart').getContext('2d');
+        const resultsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Alternate Hypervisor', 'VCF Bundle FTW!', 'All in on Hyperscale'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(75, 192, 192, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Hide the chart label
+                    },
+                    datalabels: {
+                        color: '#000',
+                        anchor: 'end',
+                        align: 'start',
+                        offset: 0,
+                        borderWidth: 2,
+                        borderColor: '#000',
+                        borderRadius: 25,
+                        backgroundColor: (context) => context.dataset.backgroundColor,
+                        font: {
+                            weight: 'bold',
+                            size: '40'
+                        },
+                        formatter: (value, context) => {
+                            return value;
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+        // Update the admin dashboard results on page load and periodically
+        updateAdminResults(resultsChart);
+        setInterval(() => updateAdminResults(resultsChart), 5000); // Refresh every 5 seconds
+    </script>
+</body>
+</html>
